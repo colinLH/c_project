@@ -1,0 +1,4 @@
+Kit 1 head 1001 1 0 0 0 1 1 0
+Berry 3 heart 1002 0 1 1 0 1 0 1 1
+Bob 2 leg 1003 1 0 1 0 0 0 1
+Lily 4 sex 1004 1 1 1 0 1 0 1
