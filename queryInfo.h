@@ -5,9 +5,12 @@ void queryDept(record *r)
 {
 	record *p = r->next;
 	char dept_name[10][16];
+	char query_dept[16];
 	diagnose * dia[10][1000];
 	int num[10];
 	for(int i=0; i<10; i++) num[i]=0;
+	printf("please enter the department name:");
+	scanf("%s", query_dept);
 
 	while( p != null )
 	{
@@ -20,18 +23,137 @@ void queryDept(record *r)
 
 	for(int i=0; i<10; i++)
 	{
-		if(dept_name[i] != null)
+		if(dept_name[i] == query_dept)
 		{
 			printf("%s:\n", dept_name[i]);
 			for(int j=0; j<num[i]; j++)
 			{
-				printf("diagnose money: %d\n", dia[i][j]->check->total);
+				printf("check money: %d\n", dia[i][j]->c->total);
 				//medicial
-				printf("begin time: %d %d %d:%d, end time: %d %d %d:%d, yajin: %d\.%d\.%d\n", dia[i][j]->hospital->begin>month, dia[i][j]->hospital->begin->day, dia[i][j]->hospital->begin->hour, dia[i][j]->hospital->begin->minute, dia[i][j]->hospital->end->month, dia[i][j]->hospital->end->day, dia[i][j]->hospital->end->hour, dia[i][j]->hospital->end->minute,dia[i][j]->hospital->yajin->yuan, dia[i][j]->hospital->yajin->jiao, dia[i][j]->hospital->yajin->fen);
+				printf("begin time: %d %d %d:%d, end time: %d %d %d:%d, yajin: %d\.%d\.%d\n", dia[i][j]->h->begin>month, dia[i][j]->h->begin->day, dia[i][j]->h->begin->hour, dia[i][j]->h->begin->minute, dia[i][j]->h->end->month, dia[i][j]->h->end->day, dia[i][j]->h->end->hour, dia[i][j]->h->end->minute,dia[i][j]->h->yajin->yuan, dia[i][j]->h->yajin->jiao, dia[i][j]->h->yajin->fen);
 			}
+			
 			printf("\n\n");
+			break;
 		}
 	}
 }
 
-void queryDoc(){}
+void queryDoc(record * r)
+{
+	record *  p = r->next;
+	int did;
+	printf("please enter the doctor's id:");
+	scanf("%d", &did);
+	while( p != null )
+	{
+		if(p->doc->did == did)
+		{
+			printf("chcek money: %d\n", p->dia->c->total);
+			//medical
+			printf("begin time: %d %d %d:%d, end time: %d %d %d:%d, yajin: %d\.%d\.%d\n",p->dia->h->begin>month, p->dia->h->begin->day, p->dia->h->begin->hour, p->dia->h->begin->minute, p->dia->h->end->month, p->dia->h->end->day, p->dia->h->end->hour, p->dia->h->end->minute, p->dia->h->yajin->yuan, p->dia->h->yajin->jiao, p->dia->h->yajin->fen);
+		}
+
+		p = p->next;
+	}
+}
+
+void queryPat(record * p)
+{
+	record *p = r->next;
+	printf("please enter the patient id:");
+	int pid;
+	scanf("%d", &pid);
+
+	while( p != null)
+	{
+		if(pid%10 == (p->pat->pid)%10)
+		{
+			printf("patient name: %s", p->pat->name);
+			//medicial
+			printf("begin time: %d %d %d:%d, end time: %d %d %d:%d, yajin: %d\.%d\.%d\n",p->dia->h->begin>month, p->dia->h->begin->day, p->dia->h->begin->hour, p->dia->h->begin->minute, p->dia->h->end->month, p->dia->h->end->day, p->dia->h->end->hour, p->dia->h->end->minute, p->dia->h->yajin->yuan, p->dia->h->yajin->jiao, p->dia->h->yajin->fen);
+		}
+		p = p->next;
+	}
+}
+
+void docBusy(doctor * doc)
+{
+	doctor * p = doc->next;
+	char work_day[7][3] = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
+	while( p != null )
+	{
+		printf("%d\t%s\t", p->did, p->name);
+		int busy_level = 0;
+		for(int i=0; i<7; i++)
+		{
+			if(p->work[i] == 1)	busy_level++;
+		}
+		printf("busy level: %d\t", busy_level);
+		printf("work day: ");
+		for(int i=0; i<7; i++)
+		{
+			if(p->work[i] == 1)
+			{
+				printf("%s\t", work_day[i]);
+			}
+		}
+
+		printf("\n");
+		p = p->next;
+	}
+}
+
+
+money initMoney()
+{
+	money m;
+	m.yuan = 0;
+	m.jiao = 0;
+	m.fen = 0;
+	return m;
+}
+
+money addMoney(money x, money y)
+{
+	money ans;
+	ans.yuan = x.yuan + y.yuan;
+	ans.jiao = x.jiao + y.jiao;
+	ans.fen = x.fen + y.fen;
+	return ans;
+}
+
+//return 1 means x is later than b, 0 means y is later than x, -1 means same time
+int compareDate(Date x, Date y)
+{
+
+	if(x.month > y.month)	return 1;
+	else if(x.month < y.month)	return 0;
+
+	if(x.day > y.day)	return 1;
+	else if(x.day < y.day)	return 0;
+	
+	if(x.hour > y.hour)	return 1;
+	else if(x.hour < y.hour)	return 0;
+	
+	if(x.minute > y.minute)	return 1;
+	else if(x.minute < y.minute)	return 0;
+	
+	return -1;
+}
+
+void calMoney(record * r)
+{
+	record * p = r->next;
+	money diagnose_money, medical_money, hospital_money, total_money;
+	diagnose_money = initMoney();
+	medical_money = initMoney();
+	hospital_money = initMoney();
+	total_money = init_money();
+	
+	while( p != null )
+	{
+		
+		p = p->next;
+	}
+}
