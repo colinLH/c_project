@@ -29,7 +29,7 @@ void queryDept(record *r)
 			for(int j=0; j<num[i]; j++)
 			{
 				printf("check money: %d\n", dia[i][j]->c->total);
-				//medicial
+				printf("medicial cost: %d\.%d\.%d\n", dia[i][j]->m->total->yuan, dia[i][j]->m->total->total->jiao, dia[i][j]->m->total->fen);
 				printf("begin time: %d %d %d:%d, end time: %d %d %d:%d, yajin: %d\.%d\.%d\n", dia[i][j]->h->begin>month, dia[i][j]->h->begin->day, dia[i][j]->h->begin->hour, dia[i][j]->h->begin->minute, dia[i][j]->h->end->month, dia[i][j]->h->end->day, dia[i][j]->h->end->hour, dia[i][j]->h->end->minute,dia[i][j]->h->yajin->yuan, dia[i][j]->h->yajin->jiao, dia[i][j]->h->yajin->fen);
 			}
 			
@@ -50,8 +50,8 @@ void queryDoc(record * r)
 		if(p->doc->did == did)
 		{
 			printf("chcek money: %d\n", p->dia->c->total);
-			//medical
-			printf("begin time: %d %d %d:%d, end time: %d %d %d:%d, yajin: %d\.%d\.%d\n",p->dia->h->begin>month, p->dia->h->begin->day, p->dia->h->begin->hour, p->dia->h->begin->minute, p->dia->h->end->month, p->dia->h->end->day, p->dia->h->end->hour, p->dia->h->end->minute, p->dia->h->yajin->yuan, p->dia->h->yajin->jiao, p->dia->h->yajin->fen);
+			printf("medicial cost: %d\.%d\.%d\n", p->dia->m->yuan, p->dia->m->jiao, p->dia->m->fen);
+			printf("begin time: %d %d %d:%d, end time: %d %d %d:%d, yajin: %d\.%d\.%d\n\n",p->dia->h->begin>month, p->dia->h->begin->day, p->dia->h->begin->hour, p->dia->h->begin->minute, p->dia->h->end->month, p->dia->h->end->day, p->dia->h->end->hour, p->dia->h->end->minute, p->dia->h->yajin->yuan, p->dia->h->yajin->jiao, p->dia->h->yajin->fen);
 		}
 
 		p = p->next;
@@ -117,9 +117,19 @@ money initMoney()
 money addMoney(money x, money y)
 {
 	money ans;
-	ans.yuan = x.yuan + y.yuan;
-	ans.jiao = x.jiao + y.jiao;
 	ans.fen = x.fen + y.fen;
+	ans.jiao = x.jiao + y.jiao;
+	ans.yuan = x.yuan + y.yuan;
+	if(ans.fen > 60)
+	{
+		ans.fen -= 60;
+		ans.jiao ++;
+	}
+	if(ans.jiao > 60)
+	{
+		ans.jiao -= 60;
+		ans.yuan ++;
+	}
 	return ans;
 }
 
@@ -142,6 +152,18 @@ int compareDate(Date x, Date y)
 	return -1;
 }
 
+int calPeriod(Date begin, Date end)
+{
+	int period = 0;
+	int month_day[12] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+	for(int i=begin.month; i<end.month; i++)	period += month[i];
+	
+	period -= begin.day;
+	period += end.day;
+	if(end.hour>0 && end.hour<=9) period--;
+	return period;
+}
+
 void calMoney(record * r)
 {
 	record * p = r->next;
@@ -151,9 +173,47 @@ void calMoney(record * r)
 	hospital_money = initMoney();
 	total_money = init_money();
 	
+	Date now;
+	printf("please input the date like aa\.bb cc:dd\n");
+	scanf("%d\.%d %d:%d", &(now.month), &(now.day), &(now.hour), &(now.minute));
+
 	while( p != null )
 	{
-		
+		if(compareDate(now, p->dia->h->end) == 1)
+		{
+			diagnose_money = addMoney(diagnose_money, p->dia->c->total);
+			medicial_money = addMoney(medicial_money, p->dia->m->total);
+			hospital_money.yuan += 200 * calPeriod(p->dia->h>begin, p->dia->h->end);
+		}
+
+		p = p->next;
+	}
+
+	total_money = addMoney(total_money, diagnose_money);
+	total_money = addMoney(total_money, medicial_money);
+	total_money = addMoney(total_money, hospital_money);
+
+	printf("diagnose earning : %d\.%d\.%d\n", diagnose_money.yuan, diagnose_money.jiao, diagonse_money.fen);
+	printf("medicial earning : %d\.%d\.%d\n", medicial_money.yuan, medicial_money.jiao, medicial_money.fen);
+	printf("hospital earning : %d\.%d\.%d\n", hospital_money.yuan, hospital_money.jiao, hospital_money.fen);
+	printf("total earning : %d\.%d\.%d\n", total_money.yuan, total_money.jiao, total_money.fen);
+}
+
+void printLiving(record * r)
+{
+	record * p = r->next;
+	printf("please input the date like aa\.bb cc:dd\n");
+	Date now;
+	scanf("%d\.%d %d:%d", &(now.month), &(now.day), &(now.hour), &(now.minute));
+
+	printf("patients living in hospital right now :\n");
+	while( p != null )
+	{
+		if(compareDate(p->dia->h->end, now) == 1)
+		{
+			printf("patient id: %d\t name:%s\t age: %d\t begin date: %d\.%d %d:%d\n", p->pat->pid, p->pat->name, p->pat->age, p->dia->h->begin->month, p->dia->h->begin->day, p->dia->h->begin->hour, p->dia->h->begin->minute);
+		}
+
 		p = p->next;
 	}
 }
